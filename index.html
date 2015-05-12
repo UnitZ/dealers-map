@@ -2,24 +2,36 @@
 <html lang="en">
 <head>
 	<meta charset="UTF-8">
-	<title>Document</title>
+	<title>Карта дилеров</title>
 	<script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 	<script>
 		var map;
 		ymaps.ready(init);
+		var logos_coords = {
+				"Daewoo": [[0,0], [30, 30]],
+				"FORD": [[0,30], [30, 60]], 
+				"HINO": [[0,60], [30, 90]], 
+				"Hyundai": [[0,90], [30, 120]], 
+				"ISUZU": [[0,120], [30, 150]], 
+				"Mitsubishi": [[0,150], [30, 180]] 
+			}
 		function setMarks(map, locationsMark) {
    			for (var i = 0; i < locationsMark.length; i++) {
     			var dealer = locationsMark[i];
 				dealerMark = new ymaps.Placemark([dealer[2], dealer[3]], {
-            		hintContent: dealer[0],
-					iconContent: dealer[1]
-        			}, {
-							//iconLayout: 'default#image',
-							//iconImageHref: 'logos.png',
-							//iconImageSize: [12, 12],
-							//iconImageOffset: [-6, -6]
-						preset: 'islands#blackStretchyIcon',
+            		hintContent: dealer[1]
+					}, {
+							iconLayout: 'default#image',
+							iconImageHref: 'logos.png',
+							iconImageClipRect: [[0,0], [30, 30]],
+							iconImageSize: [30, 30],
+							iconImageOffset: [-15, -15]
+						//preset: 'islands#blackStretchyIcon',
 					});
+				
+				dealerMark.options.set({
+					iconImageClipRect: logos_coords[dealer[0]]
+				});
    				map.geoObjects.add(dealerMark);
   			}	
 		}
@@ -71,7 +83,7 @@
 			["ISUZU", "АКС Холдинг", 55.61086, 38.07636],
 			["ISUZU", "АКС Холдинг", 55.720383, 37.747523],
 			["ISUZU", "КомАвтоТорг", 55.669742, 37.439149],
-			["ISUZU", "Мэйджор Трак Центр", 55.81389, 37.062027]//,
+			["ISUZU", "Мэйджор Трак Центр", 55.81389, 37.062027],
 			["Mitsubishi", "DM FUSO (Альянс Тракс)", 55.921531, 37.507942],
 			["Mitsubishi", "АвтоМАШ М", 55.641859, 37.64162],
 			["Mitsubishi", "АвтоСпецЦентр", 55.643185, 37.63243],
