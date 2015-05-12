@@ -4,18 +4,34 @@
 	<meta charset="UTF-8">
 	<title>Карта дилеров</title>
 	<script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+	<script src="http://yastatic.net/jquery/2.1.3/jquery.min.js"></script>
 	<script src="papaparse.min.js"></script>
 	<script>
+		$(document).ready(function(){
+			$("#csv-file").change(function(evt) {
+				var file = evt.target.files[0];
+				Papa.parse(file, {
+					delimiter: ";",
+					newline: "\r\n",
+					encoding: "cp1251",
+					header: true,
+					dynamicTyping: true,
+					complete: function(results) {
+						dealersLoadArr = results["data"];
+						setLoadedMarks(map, dealersLoadArr);
+						
+					}
+				});
+			});
+			
+			$("#panel-btn").click(function() {
+				$("#panel").toggle();
+			});
+		});
 		var map;
 		ymaps.ready(init);
-		Papa.parse("dealers.csv", {
-			delimiter: ";",
-			newline: "\r\n",
-			header: true,
-			complete: function(results, file) {
-				console.log(results);
-			}
-		});
+		
+		
 		var logos_coords = {
 				"Daewoo": [[0,0], [30, 30]],
 				"FORD": [[0,30], [30, 60]], 
@@ -47,64 +63,40 @@
    				//map.geoObjects.add(dealerMark);
   			}	
 		}
+		function setLoadedMarks(map, locationsMark) {
+   			for (var i = 0; i < locationsMark.length; i++) {
+    			var dealer = locationsMark[i];
+				dealerMark = new ymaps.Placemark([dealer["Широта"], dealer["Долгота"]], {
+            		hintContent: dealer["Название"],
+					balloonContentHeader:  dealer["Название"],
+					balloonContentBody: dealer["Телефон"],
+					balloonContentFooter: '<a target=_blank href="'+dealer["Сайт"]+'">'+dealer["Сайт"]+'</a>',
+					}, {
+							iconLayout: 'default#image',
+							iconImageHref: 'logos.png',
+							iconImageClipRect: [[0,0], [30, 30]],
+							iconImageSize: [30, 30],
+							iconImageOffset: [-15, -15]
+						//preset: 'islands#blackStretchyIcon',
+					});
+				
+				dealerMark.options.set({
+					iconImageClipRect: logos_coords[dealer["Марка"]]
+				});
+				var dealerClusterer = new ymaps.Clusterer();
+				dealerClusterer.add(dealerMark);
+				map.geoObjects.add(dealerClusterer);
+   				//map.geoObjects.add(dealerMark);
+  			}	
+		}
 		function init() {
 			map = new ymaps.Map("map", {
 				center: [55.752156,37.61689], 
 				zoom: 10,
 				controls: []
 			});
-		var dealersAr = [ 
-			["Daewoo", "Евро Трак Сервис", 55.659967, 37.28542],
-			["FORD", "ПБС Тракс", 55.35032, 38.429353],
-			["FORD", "РусБизнесАвто Форд (РБА)", 55.950554, 37.344062],
-			["FORD", "СовИнтерАвтоСервис", 55.569393, 37.602148],
-			["FORD", "Сэйф Тракс", 55.800504, 38.446628],
-			["FORD", "Форд Трак Центр - Север", 55.98294, 37.886258],
-			["HINO", "ИларАвто", 55.914696, 37.589248],
-			["HINO", "АВТ Трейд", 55.978312, 37.299497],
-			["HINO", "ООО «АТП РУС» (АвтоСпецЦентр)", 55.643185, 37.63243],
-			["HINO", "Хино-Сервис", 55.669742, 37.439149],
-			["HINO", "ДМ ХИНО", 55.921531, 37.507942],
-			["HINO", "ИТС-Хино", 55.585184, 37.362091],
-			["HINO", "АВТ Трейд", 55.644704, 37.639294],
-			["Hyundai", "Хендэ КомТранс", 55.890462, 37.489796],
-			["Hyundai", "Хендэ КомТранс Юг", 55.609736, 37.630831],
-			["Hyundai", "АФ Моторс", 55.833981, 37.495563],
-			["Hyundai", "Хендэ-АВТОКОМТРАНС Марьино", 55.658195, 37.725388],
-			["Hyundai", "Хендэ-АВТОКОМТРАНС Очаково", 55.692277, 37.417212],
-			["Hyundai", "Транспортный центр Hyundai", 55.711341, 37.856731],
-			["Hyundai", "Корея Автоцентр", 55.668402, 37.437658],
-			["Hyundai", "ООО «АТП РУС»/Автотехцентр ЭЛА  (АвтоСпецЦентр)", 55.643185, 37.63243],
-			["Hyundai", "Блок АвтоСтарт", 55.748088, 37.755311],
-			["Hyundai", "Компания СИМ-авто (РБА)", 55.950554, 37.344062],
-			["Hyundai", "Автоцентр Инфопром", 55.706558, 37.71018],
-			["Hyundai", "ТТМ Центр", 55.656712, 37.85577],
-			["Hyundai", "ПодольскКомТранс", 55.443307, 37.61627],
-			["Hyundai", "Автомаш Холдинг", 55.786131, 37.858114],
-			["Hyundai", "Евро Трак Сервис", 55.659967, 37.28542],
-			["Hyundai", "Кваттро-Сервис", 55.726487, 38.009921],
-			["Hyundai", "ИнвестТракСервис", 55.524015, 36.983694],
-			["Hyundai", "Нео Трак", 55.668386, 37.900694],
-			["Hyundai", "Интерком-Сервис", 55.581592, 37.71875],
-			["ISUZU", "DM ISUZU (ГК «АЛЬЯНС ТРАКС»)", 55.921158, 37.510242],
-			["ISUZU", "ААА ISUZU", 55.837181, 37.403162],
-			["ISUZU", "ААА ISUZU", 55.848357, 38.658738],
-			["ISUZU", "Aвто-М", 55.443307, 37.61627],
-			["ISUZU", "Авто-ИСУЗУ", 55.85296, 37.525809],
-			["ISUZU", "Автофургон", 55.833981, 37.495563],
-			["ISUZU", "АКС Холдинг", 55.61086, 38.07636],
-			["ISUZU", "АКС Холдинг", 55.720383, 37.747523],
-			["ISUZU", "КомАвтоТорг", 55.669742, 37.439149],
-			["ISUZU", "Мэйджор Трак Центр", 55.81389, 37.062027],
-			["Mitsubishi", "DM FUSO (Альянс Тракс)", 55.921531, 37.507942],
-			["Mitsubishi", "АвтоМАШ М", 55.641859, 37.64162],
-			["Mitsubishi", "АвтоСпецЦентр", 55.643185, 37.63243],
-			["Mitsubishi", "Автофургон", 55.833981, 37.495563],
-			["Mitsubishi", "Автоцентр Инфопром", 55.706558, 37.71018],
-			["Mitsubishi", "ТТМ ЦЕНТР", 55.656712, 37.85577],
-			["Mitsubishi", "ФУСО Центр МБ Рус", 55.915765, 37.582673]
-			];
-		setMarks(map, dealersAr);
+		
+		//setMarks(map, dealersAr);
 }
 	</script>
 	<style>
@@ -114,9 +106,45 @@
 			padding: 0;
 			margin: 0;
 		}
+		#panel {
+			width: 100%;
+			padding: 5px;
+			background-color: #fff;
+		}
+		#panel span {
+			cursor:pointer;
+			float: right;
+			margin-right: 20px
+		}
+		#panel-btn {
+			width:100%;
+			height: 2px;
+			background-color: #fff;
+			opacity: 0;
+		}
+		#panel-btn:after {
+			content: '';
+			display: block;
+			width: 16px;
+			height: 16px;
+			background-color: red;
+			position: relative;
+			margin: 0 auto;
+			opacity: 0;
+			z-index: 1;
+		}
+
+		#panel-btn:hover, #panel-btn:hover:after {
+			opacity: 1;
+		}
 	</style>
 </head>
 <body>
+	<div id="panel">
+		<input type="file" name="csv-file" id="csv-file">
+		<span>&uarr;</span>
+	</div>
+	<div id="panel-btn"></div>
 	<div id="map"></div>
 </body>
 </html>
